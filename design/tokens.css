@@ -1,0 +1,64 @@
+/* blakpdf 디자인 토큰 — 도면 작업용 어두운 회색 작업 화면 + 파란 강조색 (Bluebeam 계열 재해석) */
+:root {
+  /* Color */
+  --color-bg: #1e2126;            /* 앱 바탕 */
+  --color-surface: #272b31;       /* 패널 */
+  --color-surface-2: #30353c;     /* 도구 막대, 입력칸 */
+  --color-surface-hover: #3a4048;
+  --color-canvas: #4a4f57;        /* 문서 뒤 작업 영역 */
+  --color-border: #3d434b;
+  --color-text: #e8eaed;
+  --color-text-muted: #a3a9b2;    /* 대비 7.0:1 on surface */
+  --color-accent: #3d8bfd;
+  --color-accent-strong: #1f6fe5;
+  --color-accent-soft: rgba(61, 139, 253, 0.18);
+  --color-danger: #f0605a;
+  --color-success: #3ccf8e;
+  --color-focus: #8ab8ff;
+
+  /* Typography */
+  --font-sans: "Segoe UI", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --leading: 1.4;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  /* Radius / Border / Shadow */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --border: 1px solid var(--color-border);
+  --shadow-page: 0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-dialog: 0 12px 40px rgba(0, 0, 0, 0.5);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Size */
+  --toolbar-h: 44px;
+  --statusbar-h: 26px;
+  --sidebar-w: 168px;
+  --panel-w: 280px;
+  --hit: 32px; /* 최소 클릭 영역 */
+
+  /* Z-index */
+  --z-overlay: 10;
+  --z-dialog: 100;
+  --z-toast: 200;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-fast: 0ms; }
+}

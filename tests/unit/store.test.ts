@@ -56,4 +56,28 @@ describe('실행 취소 / 다시 실행', () => {
     h = run(h, { type: 'undo' });
     expect(h.present.calibrations[1]).toBeUndefined();
   });
+
+  it('색만 바꾸면 다른 속성은 유지, 슬라이더 연속 변경은 한 번에 되돌린다', () => {
+    let h = run(initHistory(), { type: 'add', markup: mk('a') });
+    h = run(h, { type: 'restyle', ids: ['a'], style: { color: '#00ff00' } });
+    expect(h.present.markups[0].style).toEqual({ color: '#00ff00', width: 2, opacity: 1 });
+    h = run(
+      h,
+      { type: 'restyle', ids: ['a'], style: { width: 3 }, coalesceKey: 'w' },
+      { type: 'restyle', ids: ['a'], style: { width: 4 }, coalesceKey: 'w' },
+      { type: 'restyle', ids: ['a'], style: { width: 5 }, coalesceKey: 'w' },
+    );
+    expect(h.present.markups[0].style.width).toBe(5);
+    h = run(h, { type: 'undo' });
+    expect(h.present.markups[0].style.width).toBe(2);
+    expect(h.present.markups[0].style.color).toBe('#00ff00');
+  });
+
+  it('여러 개를 한 번에 옮기면 한 번에 되돌린다', () => {
+    let h = run(initHistory(), { type: 'add', markup: mk('a') }, { type: 'add', markup: mk('b') });
+    h = run(h, { type: 'translate', ids: ['a', 'b'], dx: 10, dy: 5 });
+    expect(h.present.markups.map((m) => m.points[0])).toEqual([{ x: 10, y: 5 }, { x: 10, y: 5 }]);
+    h = run(h, { type: 'undo' });
+    expect(h.present.markups.map((m) => m.points[0])).toEqual([{ x: 0, y: 0 }, { x: 0, y: 0 }]);
+  });
 });
