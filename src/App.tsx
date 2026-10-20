@@ -44,6 +44,13 @@ type DialogState =
   | { kind: 'calibrate'; a: Point; b: Point; length: string; unit: string; error?: string }
   | null;
 
+/** 글자를 입력하는 칸에서는 Delete·Ctrl+Z 등을 그 칸에 맡긴다. 슬라이더·색 선택칸은 단축키를 그대로 쓴다 */
+function isTextField(el: HTMLElement): boolean {
+  if (el.closest('textarea, select, [contenteditable]')) return true;
+  const input = el.closest('input');
+  return !!input && !['range', 'color', 'checkbox', 'radio', 'button'].includes(input.type);
+}
+
 const isDrawTool = (t: Tool): t is ShapeKind => t !== 'select' && t !== 'pan' && t !== 'calibrate';
 
 export default function App() {
@@ -202,13 +209,13 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (dialog || t.closest('input, textarea, select, [contenteditable]')) return;
+      if (dialog || isTextField(t)) return;
       const ctrl = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
       if (ctrl && k === 'z' && !e.shiftKey) dispatch({ type: 'undo' });
       else if (ctrl && (k === 'y' || (k === 'z' && e.shiftKey))) dispatch({ type: 'redo' });
-      else if (ctrl && !isDesktop() && k === 'o') onOpen(); // PC 프로그램에서는 메뉴 단축키가 처리
-      else if (ctrl && !isDesktop() && k === 's') save(e.shiftKey);
+      else if (ctrl && k === 'o') onOpen(); // PC 프로그램 메뉴는 단축키를 표시만 한다 (electron/main.cjs)
+      else if (ctrl && k === 's') save(e.shiftKey);
       else if (ctrl && (k === '=' || k === '+')) setZoom((z) => nextZoom(z, 1));
       else if (ctrl && k === '-') setZoom((z) => nextZoom(z, -1));
       else if (ctrl && k === '0') fitWidth(sizes[pageNum - 1]);

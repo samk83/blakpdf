@@ -49,3 +49,33 @@ test('9. PC 프로그램: 파일 메뉴로 열고, 마크업하고, 저장한다
   expect(doc.getPageCount()).toBe(3);
   await app.close();
 });
+
+test('9b. PC 프로그램: Ctrl+O / Ctrl+S / Ctrl+Shift+S 키로 열고 저장한다', async () => {
+  const app = await electron.launch({ args: ['.', '--no-sandbox'], env: { ...process.env, BLAKPDF_TEST: '1' } });
+  const win = await app.firstWindow();
+  await expect(win.getByTestId('welcome-open')).toBeVisible();
+  const dir = await mkdtemp(join(tmpdir(), 'blakpdf-'));
+  await app.evaluate(({ dialog }, [file, d]) => {
+    let n = 0;
+    dialog.showOpenDialog = (async () => ({ canceled: false, filePaths: [file] })) as typeof dialog.showOpenDialog;
+    dialog.showSaveDialog = (async () => ({ canceled: false, filePath: `${d}/save${++n}.pdf` })) as typeof dialog.showSaveDialog;
+  }, [SAMPLE, dir]);
+
+  await win.keyboard.press('Control+o');
+  await expect(win.getByTestId('page-count')).toHaveText('/ 3');
+
+  await win.getByTestId('tool-line').click();
+  const box = (await win.getByTestId('overlay').boundingBox())!;
+  await win.mouse.move(box.x + 50, box.y + 50);
+  await win.mouse.down();
+  await win.mouse.move(box.x + 200, box.y + 60, { steps: 5 });
+  await win.mouse.up();
+
+  await win.keyboard.press('Control+s'); // 첫 저장 → 저장 창 → save1.pdf
+  await expect(win.getByTestId('toast')).toContainText('save1.pdf');
+  await win.keyboard.press('Control+Shift+s'); // 다른 이름으로 → save2.pdf
+  await expect(win.getByTestId('toast')).toContainText('save2.pdf');
+  for (const f of ['save1.pdf', 'save2.pdf']) expect((await PDFDocument.load(await readFile(join(dir, f)))).getPageCount()).toBe(3);
+  await app.close();
+});
+

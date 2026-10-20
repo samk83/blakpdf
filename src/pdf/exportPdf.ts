@@ -1,4 +1,6 @@
-import { PDFDocument, StandardFonts, rgb, LineCapStyle, type PDFFont, type PDFPage } from 'pdf-lib';
+import {
+  PDFDocument, StandardFonts, rgb, LineCapStyle, concatTransformationMatrix, popGraphicsState, pushGraphicsState, type PDFFont, type PDFPage,
+} from 'pdf-lib';
 import { strokePaths, midpoint } from '../markup/geometry';
 import { DEFAULT_CALIBRATION, formatMeasure, measureLength } from '../markup/measure';
 import type { Calibration, Markup } from '../markup/types';
@@ -14,6 +16,35 @@ export type TextRasterizer = (text: string, fontSize: number, color: string) => 
 
 export interface ExportOptions {
   rasterizeText?: TextRasterizer;
+}
+
+export type Matrix = [number, number, number, number, number, number];
+
+/**
+ * 화면 좌표(보이는 페이지의 왼쪽 위 원점, 아래로 +y)를 PDF 좌표로 바꾸는 변환 행렬.
+ * 입력은 (u, v) = (x, -y): drawSvgPath가 y를 뒤집어 넘겨 주는 모양에 맞췄다.
+ * pdf.js 화면과 같게 CropBox 원점과 페이지 회전(/Rotate, 시계 방향)을 반영한다.
+ */
+export function viewMatrix(box: { x: number; y: number; width: number; height: number }, rotation: number): Matrix {
+  const { x, y, width: w, height: h } = box;
+  switch (((rotation % 360) + 360) % 360) {
+    case 90:
+      return [0, 1, -1, 0, x, y];
+    case 180:
+      return [-1, 0, 0, -1, x + w, y];
+    case 270:
+      return [0, -1, 1, 0, x + w, y + h];
+    default:
+      return [1, 0, 0, 1, x, y + h];
+  }
+}
+
+/** 화면 좌표 한 점 → PDF 좌표 (테스트·확인용) */
+export function viewToPdf(m: Matrix, vx: number, vy: number) {
+  const [a, b, c, d, e, f] = m;
+  const u = vx;
+  const v = -vy;
+  return { x: a * u + c * v + e, y: b * u + d * v + f };
 }
 
 function canEncode(font: PDFFont, text: string): boolean {
@@ -36,18 +67,17 @@ async function drawTextBlock(
   opacity: number,
   opts: ExportOptions,
 ) {
-  const pageH = page.getHeight();
   const lines = text.split('\n');
   if (lines.every((l) => canEncode(font, l))) {
     lines.forEach((line, i) => {
-      page.drawText(line, { x, y: pageH - topY - size * (i + 1) * 1.2 + size * 0.2, size, font, color: hexToRgb(color), opacity });
+      page.drawText(line, { x, y: -(topY + size * (i + 1) * 1.2 - size * 0.2), size, font, color: hexToRgb(color), opacity });
     });
     return;
   }
   if (!opts.rasterizeText) throw new Error('이 글자는 PDF 기본 글꼴로 저장할 수 없습니다.');
   const img = await opts.rasterizeText(text, size, color);
   const embedded = await page.doc.embedPng(img.png);
-  page.drawImage(embedded, { x, y: pageH - topY - img.height, width: img.width, height: img.height, opacity });
+  page.drawImage(embedded, { x, y: -(topY + img.height), width: img.width, height: img.height, opacity });
 }
 
 /**
@@ -67,14 +97,15 @@ export async function exportPdf(
   for (const m of markups) {
     const page = pages[m.page - 1];
     if (!page) continue;
-    const pageH = page.getHeight();
     const color = hexToRgb(m.style.color);
+    // 이 마크업의 그리기 명령은 q … Q 로 감싸고, 그 안에서 화면 좌표를 그대로 쓴다
+    page.pushOperators(pushGraphicsState(), concatTransformationMatrix(...viewMatrix(page.getCropBox(), page.getRotation().angle)));
 
     for (const path of strokePaths(m)) {
-      // drawSvgPath는 (x, y)를 SVG 원점으로 보고 y축을 뒤집어 준다 → 왼쪽 위 원점 좌표를 그대로 쓸 수 있다
+      // drawSvgPath는 y축을 뒤집어 (x, -y)로 그린다 → 위 변환 행렬이 화면 좌표로 맞춰 준다
       page.drawSvgPath(path, {
         x: 0,
-        y: pageH,
+        y: 0,
         borderColor: color,
         borderWidth: m.style.width,
         borderOpacity: m.style.opacity,
@@ -92,6 +123,7 @@ export async function exportPdf(
       const size = 11;
       await drawTextBlock(page, font, label, mid.x + 4, mid.y - size - 6, size, m.style.color, 1, opts);
     }
+    page.pushOperators(popGraphicsState());
   }
   return doc.save();
 }

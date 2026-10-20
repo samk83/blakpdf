@@ -5,7 +5,7 @@
 
 ## 지금 상태
 - 단계: 개발 v0.1 완료 → 출시 전 점검(ship-check) 대기
-- 마지막 작업: v0.1 전체 구현, 단위 19 / 브라우저 E2E 8 / Electron 1 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
+- 마지막 작업: v0.1 전체 구현, 리뷰 반영(단축키·회전 페이지 저장) 후 단위 26 / 브라우저 E2E 9 / Electron 2 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
 
 ## 다음 할 일 (순서대로)
 1. Owner가 Windows PC에서 실행 확인 (README "Windows에서 실행" 참고) → 결과 알려 주기
@@ -17,7 +17,6 @@
 
 ## 남은 문제
 - Windows 실기 실행 미확인 (클라우드는 Linux)
-- 회전된 페이지(/Rotate 90·270)가 있는 PDF는 저장 시 마크업 위치가 어긋날 수 있음 (미구현)
 - 저장한 PDF의 마크업은 그림으로 박혀서 다시 편집할 수 없음 (v0.1 설계)
 - 앱 아이콘 없음 (Electron 기본 아이콘), 코드 서명 없음 → Windows SmartScreen 경고가 뜰 수 있음
 - 아주 큰 PDF(수백 쪽)는 처음 열 때 쪽 크기를 모두 읽느라 느릴 수 있음

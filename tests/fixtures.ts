@@ -13,3 +13,14 @@ export async function makeSamplePdf(pages = 2): Promise<Uint8Array> {
   }
   return doc.save();
 }
+
+/** 회전·CropBox가 있는 1쪽 PDF (실제 도면에서 흔한 모양) */
+export async function makeTrickyPdf(rotation: number, crop?: [number, number, number, number]): Promise<Uint8Array> {
+  const { degrees } = await import('pdf-lib');
+  const doc = await PDFDocument.create();
+  const page = doc.addPage([842, 595]);
+  page.drawRectangle({ x: 0, y: 0, width: 842, height: 595, borderColor: rgb(0, 0, 0), borderWidth: 1 });
+  page.setRotation(degrees(rotation));
+  if (crop) page.setCropBox(...crop);
+  return doc.save();
+}

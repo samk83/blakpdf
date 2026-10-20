@@ -16,8 +16,8 @@ const run = (h: History, ...actions: Parameters<typeof historyReducer>[1][]) => 
 describe('실행 취소 / 다시 실행', () => {
   it('추가·이동·속성 변경·삭제를 되돌리고 다시 한다', () => {
     let h = run(initHistory(), { type: 'add', markup: mk('a') });
-    h = run(h, { type: 'update', id: 'a', patch: { points: [{ x: 5, y: 5 }, { x: 15, y: 15 }] } }); // 이동
-    h = run(h, { type: 'updateMany', ids: ['a'], patch: { style: { color: '#0000ff', width: 4, opacity: 0.5 } } }); // 속성
+    h = run(h, { type: 'translate', ids: ['a'], dx: 5, dy: 5 }); // 이동 (화면에서 끌기와 같은 동작)
+    h = run(h, { type: 'restyle', ids: ['a'], style: { color: '#0000ff', width: 4, opacity: 0.5 } }); // 속성 (오른쪽 패널과 같은 동작)
     h = run(h, { type: 'remove', ids: ['a'] });
     expect(h.present.markups).toHaveLength(0);
 

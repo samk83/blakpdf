@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PDFDocument } from 'pdf-lib';
@@ -188,14 +188,95 @@ test('6. 목록을 누르면 그 페이지로 가서 선택하고, 목록에서 
   await expect(page.locator('[data-kind="ellipse"]')).toHaveCount(0);
 });
 
-test('7. Ctrl+Z / Ctrl+Y', async ({ page }) => {
+test('7. Ctrl+Z / Ctrl+Y — 추가·이동·속성 변경(슬라이더를 마우스로)·삭제', async ({ page }) => {
   await openPdf(page);
+  const path = page.locator('[data-kind="rect"] path');
   await page.getByTestId('tool-rect').click();
   await drag(page, [100, 100], [200, 200]);
+  await expect(rows(page)).toHaveCount(1);
+
+  // 추가 되돌리기
   await page.keyboard.press('Control+z');
   await expect(rows(page)).toHaveCount(0);
   await page.keyboard.press('Control+y');
   await expect(rows(page)).toHaveCount(1);
+
+  // 이동 되돌리기
+  await page.getByTestId('tool-select').click();
+  await drag(page, [150, 150], [200, 180]);
+  await expect(path).toHaveAttribute('d', /^M 150 130/);
+  await page.keyboard.press('Control+z');
+  await expect(path).toHaveAttribute('d', /^M 100 100/);
+  await page.keyboard.press('Control+Shift+z');
+  await expect(path).toHaveAttribute('d', /^M 150 130/);
+
+  // 슬라이더를 실제 마우스로 눌러 투명도를 바꾼 직후에도 단축키가 동작해야 한다
+  await drag(page, [200, 180], [200, 180], 1); // 선택
+  const slider = (await page.getByTestId('opacity-range').boundingBox())!;
+  await page.mouse.click(slider.x + slider.width * 0.25, slider.y + slider.height / 2);
+  const changed = await path.getAttribute('stroke-opacity');
+  expect(Number(changed)).toBeLessThan(0.6);
+  await page.keyboard.press('Control+z');
+  await expect(path).toHaveAttribute('stroke-opacity', '1');
+  await page.keyboard.press('Control+y');
+  await expect(path).toHaveAttribute('stroke-opacity', changed!);
+
+  // 슬라이더에 포커스가 있는 채로 Delete → 삭제, Ctrl+Z → 복구
+  await page.keyboard.press('Delete');
+  await expect(rows(page)).toHaveCount(0);
+  await page.keyboard.press('Control+z');
+  await expect(rows(page)).toHaveCount(1);
+});
+
+test('8b. 회전된 페이지도 저장 후 같은 위치에 마크업이 보인다', async ({ page }) => {
+  const dir = await mkdtemp(join(tmpdir(), 'blakpdf-'));
+  const src = join(dir, 'rotated.pdf');
+  const { makeTrickyPdf } = await import('../fixtures');
+  await writeFile(src, await makeTrickyPdf(90, [50, 50, 700, 500]));
+  await page.goto('/');
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByTestId('welcome-open').click();
+  await (await chooser).setFiles(src);
+  await expect(page.locator('.page-canvas')).toHaveAttribute('data-rendering', 'false');
+  const W = Number(await page.getByTestId('overlay').getAttribute('viewBox').then((v) => v!.split(' ')[2]));
+  expect(W).toBeCloseTo(500, 0); // 90° 회전: 화면 폭 = CropBox 높이 (500)
+
+  const scr = async (x: number, y: number) => {
+    const box = (await page.getByTestId('overlay').boundingBox())!;
+    const s = box.width / W;
+    return { x: box.x + x * s, y: box.y + y * s };
+  };
+  await page.getByTestId('tool-rect').click();
+  await page.getByTestId('width-range').fill('8');
+  const a = await scr(100, 100);
+  const b = await scr(300, 400);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  await page.mouse.move(b.x, b.y, { steps: 5 });
+  await page.mouse.up();
+
+  const dl = page.waitForEvent('download');
+  await page.getByTestId('btn-save').click();
+  const saved = join(dir, 'saved.pdf');
+  await (await dl).saveAs(saved);
+
+  await page.reload();
+  const chooser2 = page.waitForEvent('filechooser');
+  await page.getByTestId('welcome-open').click();
+  await (await chooser2).setFiles(saved);
+  await expect(page.locator('.page-canvas')).toHaveAttribute('data-rendering', 'false');
+  const red = await page.evaluate(
+    ([w]) => {
+      const c = document.querySelector<HTMLCanvasElement>('.page-canvas')!;
+      const s = c.width / w;
+      const at = (x: number, y: number) => [...c.getContext('2d')!.getImageData(Math.round(x * s), Math.round(y * s), 1, 1).data].slice(0, 3);
+      return { left: at(100, 250), inside: at(200, 250) };
+    },
+    [W],
+  );
+  expect(red.left[0]).toBeGreaterThan(180);
+  expect(red.left[1]).toBeLessThan(120);
+  expect(red.inside).toEqual([255, 255, 255]);
 });
 
 test('8. 저장한 PDF를 다시 열면 같은 위치에 마크업이 보인다', async ({ page }) => {

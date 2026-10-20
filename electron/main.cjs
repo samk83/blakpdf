@@ -23,10 +23,11 @@ function buildMenu() {
     {
       label: '파일(&F)',
       submenu: [
-        { label: '열기...', accelerator: 'CmdOrCtrl+O', click: () => send('open') },
+        // 단축키는 화면(React)이 직접 처리한다. 메뉴는 표시만 해서 두 번 실행되지 않게 한다
+        { label: '열기...', accelerator: 'CmdOrCtrl+O', registerAccelerator: false, click: () => send('open') },
         { type: 'separator' },
-        { label: '저장', accelerator: 'CmdOrCtrl+S', click: () => send('save') },
-        { label: '다른 이름으로 저장...', accelerator: 'CmdOrCtrl+Shift+S', click: () => send('saveAs') },
+        { label: '저장', accelerator: 'CmdOrCtrl+S', registerAccelerator: false, click: () => send('save') },
+        { label: '다른 이름으로 저장...', accelerator: 'CmdOrCtrl+Shift+S', registerAccelerator: false, click: () => send('saveAs') },
         { type: 'separator' },
         { label: '끝내기', role: 'quit' },
       ],

@@ -18,6 +18,10 @@ Bluebeam Revu 비슷한 **PDF 마크업·측정 프로그램** (Windows). React 
 | 실행 취소 | Ctrl+Z / Ctrl+Y |
 | 저장 | Ctrl+S → `원본이름_markup.pdf` (원본은 그대로) |
 
+## 알려진 제한 (v0.1)
+- 저장한 PDF의 마크업은 페이지에 그림으로 들어가서, 다시 열거나 다른 프로그램에서 편집할 수 없음 (원본 PDF는 그대로 둠)
+- 면적·개수 측정, 연속 스크롤, 도면 비교는 아직 없음
+
 ## Windows에서 실행
 1. [Node.js LTS](https://nodejs.org) 설치
 2. PowerShell에서:
