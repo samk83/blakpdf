@@ -209,13 +209,18 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (dialog || isTextField(t)) return;
       const ctrl = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
+      // 파일 단축키는 입력칸에 포커스가 있어도 동작한다 (PC 프로그램 메뉴는 단축키를 표시만 함, electron/main.cjs)
+      if (ctrl && !dialog && (k === 'o' || k === 's')) {
+        e.preventDefault();
+        if (k === 'o') onOpen();
+        else save(e.shiftKey);
+        return;
+      }
+      if (dialog || isTextField(t)) return;
       if (ctrl && k === 'z' && !e.shiftKey) dispatch({ type: 'undo' });
       else if (ctrl && (k === 'y' || (k === 'z' && e.shiftKey))) dispatch({ type: 'redo' });
-      else if (ctrl && k === 'o') onOpen(); // PC 프로그램 메뉴는 단축키를 표시만 한다 (electron/main.cjs)
-      else if (ctrl && k === 's') save(e.shiftKey);
       else if (ctrl && (k === '=' || k === '+')) setZoom((z) => nextZoom(z, 1));
       else if (ctrl && k === '-') setZoom((z) => nextZoom(z, -1));
       else if (ctrl && k === '0') fitWidth(sizes[pageNum - 1]);

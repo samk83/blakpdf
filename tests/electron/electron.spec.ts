@@ -75,7 +75,11 @@ test('9b. PC 프로그램: Ctrl+O / Ctrl+S / Ctrl+Shift+S 키로 열고 저장�
   await expect(win.getByTestId('toast')).toContainText('save1.pdf');
   await win.keyboard.press('Control+Shift+s'); // 다른 이름으로 → save2.pdf
   await expect(win.getByTestId('toast')).toContainText('save2.pdf');
-  for (const f of ['save1.pdf', 'save2.pdf']) expect((await PDFDocument.load(await readFile(join(dir, f)))).getPageCount()).toBe(3);
+  // 페이지 번호 칸에 포커스가 있어도 Ctrl+Shift+S가 동작해야 한다 → save3.pdf
+  await win.getByTestId('page-input').click();
+  await win.keyboard.press('Control+Shift+s');
+  await expect(win.getByTestId('toast')).toContainText('save3.pdf');
+  for (const f of ['save1.pdf', 'save2.pdf', 'save3.pdf']) expect((await PDFDocument.load(await readFile(join(dir, f)))).getPageCount()).toBe(3);
   await app.close();
 });
 

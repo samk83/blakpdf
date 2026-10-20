@@ -5,7 +5,7 @@
 
 ## 지금 상태
 - 단계: 개발 v0.1 완료 → 출시 전 점검(ship-check) 대기
-- 마지막 작업: v0.1 전체 구현, 리뷰 반영(단축키·회전 페이지 저장) 후 단위 26 / 브라우저 E2E 9 / Electron 2 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
+- 마지막 작업: v0.1 전체 구현, 리뷰 2회 반영(단축키·회전 페이지 저장·입력칸 포커스 시 파일 단축키) 후 단위 26 / 브라우저 E2E 9 / Electron 2 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
 
 ## 다음 할 일 (순서대로)
 1. Owner가 Windows PC에서 실행 확인 (README "Windows에서 실행" 참고) → 결과 알려 주기
