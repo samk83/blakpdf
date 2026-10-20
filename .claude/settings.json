@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git checkout -b *)",
+      "Bash(git branch)",
+      "Bash(git branch *)",
+      "Bash(git fetch)",
+      "Bash(git fetch *)",
+      "Bash(git pull)",
+      "Bash(git pull *)",
+      "Bash(npm test)",
+      "Bash(npm test *)",
+      "Bash(npm run test*)",
+      "Bash(npm run build*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run typecheck*)",
+      "Bash(npm run format*)",
+      "Bash(npx --no tsc*)",
+      "Bash(pytest)",
+      "Bash(pytest *)",
+      "Bash(python3 -m pytest *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean *)",
+      "Bash(git branch -d*)",
+      "Bash(git branch -D*)",
+      "Bash(git branch --delete*)",
+      "Bash(git branch * -d*)",
+      "Bash(git branch * -D*)",
+      "Bash(git switch -f*)",
+      "Bash(git switch --force*)",
+      "Bash(git switch --discard-changes*)",
+      "Bash(git switch * -f*)",
+      "Bash(git switch * --discard-changes*)",
+      "Bash(git switch -C*)",
+      "Bash(git switch * -C*)",
+      "Bash(git switch --force-create*)",
+      "Bash(git switch * --force-create*)",
+      "Bash(git branch -f*)",
+      "Bash(git branch * -f*)",
+      "Bash(git branch --force*)",
+      "Bash(git branch * --force*)",
+      "Bash(git branch -M*)",
+      "Bash(git branch * -M*)",
+      "Bash(git branch -C*)",
+      "Bash(git branch * -C*)",
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(yarn add *)",
+      "Bash(pnpm add *)",
+      "Bash(pip install *)",
+      "Bash(python3 -m pip install *)",
+      "Bash(rm *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -Rf *)",
+      "Bash(rm -fR *)",
+      "Bash(rm -r -f *)",
+      "Bash(rm -f -r *)",
+      "Bash(sudo *)",
+      "Bash(cat .env*)",
+      "Bash(cat */.env*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(~/.ssh/**)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
