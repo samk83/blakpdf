@@ -7,14 +7,15 @@
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-assets.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-assets.mjs",
     "build": "tsc --noEmit && vite build",
-    "start": "vite build && electron .",
-    "electron": "electron .",
+    "start": "npm run build && electron .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "vite build && playwright test",
-    "dist": "vite build && electron-builder --win portable"
+    "test:e2e": "npm run build && playwright test",
+    "dist": "npm run build && electron-builder --win portable"
   },
   "build": {
     "appId": "com.samk83.blakpdf",

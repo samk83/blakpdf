@@ -47,3 +47,14 @@ describe('실행 취소/다시 실행 (SPEC #5)', () => {
     expect(useDoc.getState().calibrations).toEqual({})
   })
 })
+
+describe('연속 속성 변경 묶기', () => {
+  it('같은 속성을 연달아 바꾸면 실행 취소 한 번에 되돌아간다', () => {
+    useDoc.getState().openDocument({ fileName: 'a.pdf', filePath: null, original: new Uint8Array(), viewBytes: new Uint8Array(), pageCount: 1, markups: [], calibrations: {} })
+    const m = useDoc.getState().addMarkup({ ...base, type: 'rect', points: [{ x: 0, y: 0 }, { x: 1, y: 1 }] })
+    for (const o of [0.9, 0.8, 0.7, 0.6]) useDoc.getState().updateMarkup(m.id, { opacity: o })
+    expect(useDoc.getState().markups[0].opacity).toBe(0.6)
+    useDoc.getState().undo()
+    expect(useDoc.getState().markups[0].opacity).toBe(1)
+  })
+})

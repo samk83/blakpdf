@@ -91,8 +91,8 @@ function stripOwn(doc: PDFDocument): number {
 }
 
 function readEditData(doc: PDFDocument): EditData | null {
-  const s = doc.catalog.lookupMaybe(DATA_KEY, PDFRawStream)
-  if (!s) return null
+  const s = doc.catalog.lookup(DATA_KEY)
+  if (!(s instanceof PDFRawStream)) return null
   try {
     const bytes = decodePDFRawStream(s).decode()
     const data = JSON.parse(new TextDecoder().decode(bytes)) as EditData
@@ -247,7 +247,7 @@ function buildAnnot(doc: PDFDocument, m: Markup, cals: Calibrations, fonts: Font
     },
   }
   if (fonts.font) resources.Font = { F0: fonts.font.ref }
-  const ap = ctx.register(ctx.formXObject(ops, { BBox: rect, Resources: resources }))
+  const ap = ctx.register(ctx.formXObject(ops, { BBox: rect, Resources: resources as never }))
 
   const ms = measure(m, cals[m.page])
   const contents = [m.text, ms?.label].filter(Boolean).join(' | ')

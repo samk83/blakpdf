@@ -71,6 +71,7 @@ export interface DocState {
 }
 
 let seq = 0
+let lastEdit: { key: string; t: number } | null = null
 export const newId = () => `${Date.now().toString(36)}-${(seq++).toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 
 const now = () => new Date().toISOString()
@@ -85,7 +86,10 @@ function loadAuthor(): string {
 
 export const useDoc = create<DocState>((set, get) => {
   const snap = (): Snapshot => ({ markups: get().markups, calibrations: get().calibrations })
-  const record = () => set((s) => ({ past: [...s.past, snap()].slice(-HISTORY_LIMIT), future: [], dirty: true }))
+  const record = () => {
+    lastEdit = null
+    set((s) => ({ past: [...s.past, snap()].slice(-HISTORY_LIMIT), future: [], dirty: true }))
+  }
 
   return {
     fileName: null,
@@ -132,8 +136,13 @@ export const useDoc = create<DocState>((set, get) => {
       return full
     },
     updateMarkup: (id, patch, opts = {}) => {
-      if (opts.history !== false) record()
+      // 슬라이더처럼 같은 속성을 연달아 바꾸면 실행 취소 한 번에 되돌아가도록 묶는다
+      const key = `${id}:${Object.keys(patch).sort().join(',')}`
+      const t = Date.now()
+      const coalesce = lastEdit && lastEdit.key === key && t - lastEdit.t < 800
+      if (opts.history !== false && !coalesce) record()
       else set({ dirty: true })
+      lastEdit = { key, t }
       set((s) => ({ markups: s.markups.map((m) => (m.id === id ? { ...m, ...patch, modifiedAt: now() } : m)) }))
     },
     moveMarkup: (id, dx, dy) => {
@@ -167,6 +176,7 @@ export const useDoc = create<DocState>((set, get) => {
     },
     checkpoint: () => record(),
     undo: () => {
+      lastEdit = null
       const { past } = get()
       if (!past.length) return
       const prev = past[past.length - 1]
