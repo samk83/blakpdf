@@ -16,7 +16,9 @@
     "test:e2e": "playwright test",
     "electron": "npm run build && electron .",
     "electron:dev": "concurrently -k \"vite --port 5173 --strictPort\" \"wait-on http://localhost:5173 && cross-env BLAKPDF_DEV_URL=http://localhost:5173 electron .\"",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist:win": "npm run build && electron-builder --win",
+    "test:electron": "npm run build && playwright test -c playwright.electron.config.ts",
+    "sample": "node scripts/make-sample.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
