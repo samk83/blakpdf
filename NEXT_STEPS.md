@@ -5,7 +5,7 @@
 
 ## 지금 상태
 - 단계: 개발 v0.1 완료 → 출시 전 점검(ship-check) 대기
-- 마지막 작업: v0.1 전체 구현, 단위 23 / 브라우저 E2E 8 / Electron 1 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
+- 마지막 작업: v0.1 전체 구현, 단위 19 / 브라우저 E2E 8 / Electron 1 테스트 통과. 상태 IMPLEMENTED — VERIFICATION PENDING
 
 ## 다음 할 일 (순서대로)
 1. Owner가 Windows PC에서 실행 확인 (README "Windows에서 실행" 참고) → 결과 알려 주기
