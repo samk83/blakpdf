@@ -176,6 +176,11 @@ test('#4 선택·이동·삭제·속성 변경, #5 실행 취소/다시 실행',
   // 투명도
   await page.locator('#prop-opacity').fill('50')
   await expect(page.locator(`[data-markup-id="${id}"]`)).toHaveAttribute('opacity', '0.5')
+  // 두께
+  await page.locator('#prop-width').fill('5')
+  await expect(page.locator(`[data-markup-id="${id}"] path`).first()).toHaveAttribute('stroke-width', '5')
+  await page.keyboard.press('Control+z')
+  await expect(page.locator(`[data-markup-id="${id}"] path`).first()).toHaveAttribute('stroke-width', '2')
   // 실행 취소: 투명도 → 색 → 이동
   await page.keyboard.press('Control+z')
   await expect(page.locator(`[data-markup-id="${id}"]`)).toHaveAttribute('opacity', '1')

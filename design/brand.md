@@ -13,7 +13,7 @@
 | 기본색 | `--color-primary` | #3b5bdb | #748ffc | 주요 버튼, 선택된 도구, 선택 표시 |
 | 배경 | `--color-bg` / `--color-surface` | #f1f3f5 / #ffffff | #111317 / #1a1d23 | 창 / 패널 |
 | 캔버스 | `--color-canvas` | #dfe3e8 | #0b0c0f | 도면 뒤 점 무늬 바탕 |
-| 글자 | `--color-text` / `-muted` / `-subtle` | #1a1d23 / #59616d / #6b737e | #eceef1 / #a4abb5 / #7d8590 | 본문 / 보조 / 힌트 |
+| 글자 | `--color-text` / `-muted` / `-subtle` | #1a1d23 / #59616d / #646c77 | #eceef1 / #a4abb5 / #848c97 | 본문 / 보조 / 힌트 |
 | 상태 | `--color-success` · `--color-warning` · `--color-danger` | | | 저장 완료·축척 보정선·오류 |
 
 명도 대비: 모든 글자 조합 4.5:1 이상 (contrast.py로 계산, 2026-10-20).
