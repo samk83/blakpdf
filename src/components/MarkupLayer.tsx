@@ -384,9 +384,9 @@ export function MarkupLayer({ page, matrix, zoom, width, height }: Props) {
           m={editingMarkup}
           matrix={matrix}
           zoom={zoom}
-          onDone={(text) => {
+          onChangeText={(text) => doc().updateMarkup(editingMarkup.id, { text })}
+          onDone={() => {
             const d = doc()
-            if (text !== editingMarkup.text) d.updateMarkup(editingMarkup.id, { text })
             setEditing(null)
             if (d.tool === 'text' || d.tool === 'callout') d.setTool('select')
             d.select(editingMarkup.id)
@@ -450,7 +450,7 @@ function Selection({ m, matrix }: { m: Markup; matrix: Matrix }) {
   )
 }
 
-function InlineEditor({ m, matrix, zoom, onDone }: { m: Markup; matrix: Matrix; zoom: number; onDone: (text: string) => void }) {
+function InlineEditor({ m, matrix, zoom, onChangeText, onDone }: { m: Markup; matrix: Matrix; zoom: number; onChangeText: (text: string) => void; onDone: () => void }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [text, setText] = useState(m.text)
   const done = useRef(false)
@@ -462,17 +462,21 @@ function InlineEditor({ m, matrix, zoom, onDone }: { m: Markup; matrix: Matrix; 
   const finish = () => {
     if (done.current) return
     done.current = true
-    onDone(text)
+    onDone()
   }
   return (
     <textarea
       ref={ref}
       aria-label="마크업 내용"
       value={text}
-      onChange={(e) => setText(e.target.value)}
+      onChange={(e) => {
+        setText(e.target.value)
+        onChangeText(e.target.value)
+      }}
       onBlur={finish}
       onKeyDown={(e) => {
-        e.stopPropagation()
+        // Ctrl+S 는 저장 단축키로 넘긴다 (글자는 이미 문서에 반영돼 있음)
+        if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's')) e.stopPropagation()
         if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
           e.preventDefault()
           finish()

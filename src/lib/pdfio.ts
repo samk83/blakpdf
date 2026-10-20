@@ -15,6 +15,7 @@ import {
   PDFOperator,
   PDFRawStream,
   PDFRef,
+  PDFStream,
   PDFString,
   appendBezierCurve,
   beginText,
@@ -86,8 +87,38 @@ function stripOwn(doc: PDFDocument): number {
       }
     }
   }
+  const hadData = doc.catalog.has(DATA_KEY)
   doc.catalog.delete(DATA_KEY)
+  if (removed || hadData) collectGarbage(doc)
   return removed
+}
+
+/**
+ * 문서 루트(카탈로그·정보)에서 닿지 않는 객체를 지운다.
+ * 이전 저장 때 넣은 외형 스트림·글꼴·편집 데이터가 다시 저장할 때마다 쌓이지 않게 한다.
+ */
+function collectGarbage(doc: PDFDocument) {
+  const ctx = doc.context
+  const seen = new Set<string>()
+  const stack: unknown[] = [ctx.trailerInfo.Root, ctx.trailerInfo.Info, ctx.trailerInfo.Encrypt]
+  while (stack.length) {
+    const o = stack.pop()
+    if (o instanceof PDFRef) {
+      const key = o.toString()
+      if (seen.has(key)) continue
+      seen.add(key)
+      stack.push(ctx.lookup(o))
+    } else if (o instanceof PDFDict) {
+      for (const [, v] of o.entries()) stack.push(v)
+    } else if (o instanceof PDFArray) {
+      for (let i = 0; i < o.size(); i++) stack.push(o.get(i))
+    } else if (o instanceof PDFStream) {
+      stack.push(o.dict)
+    }
+  }
+  for (const [ref] of ctx.enumerateIndirectObjects()) {
+    if (!seen.has(ref.toString())) ctx.delete(ref)
+  }
 }
 
 function readEditData(doc: PDFDocument): EditData | null {

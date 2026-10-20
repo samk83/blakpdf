@@ -81,9 +81,6 @@ export function PropertiesPanel() {
   }
 
   const ms = selected ? measure(selected, cal) : null
-  const commitText = () => {
-    if (selected && draftText !== selected.text) useDoc.getState().updateMarkup(selected.id, { text: draftText })
-  }
 
   return (
     <aside aria-label="속성" className="flex h-full flex-col">
@@ -144,13 +141,13 @@ export function PropertiesPanel() {
                 rows={4}
                 value={draftText}
                 placeholder="메모나 설명을 입력하세요"
-                onChange={(e) => setDraftText(e.target.value)}
-                onBlur={commitText}
+                onChange={(e) => {
+                  // 입력할 때마다 문서에 반영 (저장·닫기 확인에서 빠지지 않게). 연속 입력은 실행 취소 한 번으로 묶인다
+                  setDraftText(e.target.value)
+                  useDoc.getState().updateMarkup(selected.id, { text: e.target.value })
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    commitText()
-                    ;(e.target as HTMLTextAreaElement).blur()
-                  }
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) (e.target as HTMLTextAreaElement).blur()
                 }}
                 className={cx(inputCls, 'h-auto resize-y py-1.5 leading-relaxed select-text')}
               />

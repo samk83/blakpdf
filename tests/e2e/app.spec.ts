@@ -284,7 +284,12 @@ test('#9 CSV 내보내기', async () => {
 
 test('#10 저장 후 다시 열면 마크업이 복원된다, #11 저장 상태 표시', async () => {
   await expect(page.getByTestId('dirty')).toBeVisible()
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '저장', exact: true }).click()])
+  // 속성 패널에서 글자를 고치다가 입력칸에 포커스가 있는 채로 Ctrl+S → 고친 글자까지 저장돼야 한다
+  await page.locator('[data-row]', { hasText: '창호 규격 확인' }).click()
+  await page.locator('#prop-text').click()
+  await page.keyboard.press('End')
+  await page.keyboard.type(' (수정)')
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Control+s')])
   const saved = (await dl.path())!
   await expect(page.getByTestId('dirty')).toHaveCount(0)
   // 다른 문서 열었다가 저장본 다시 열기
@@ -293,7 +298,7 @@ test('#10 저장 후 다시 열면 마크업이 복원된다, #11 저장 상태 
   await expect(page.getByTestId('file-name')).toHaveText('reopened.pdf')
   await expect(page.locator('[data-row]')).toHaveCount(16)
   await expect(page.getByTestId('scale')).toContainText('600.0pt = 6 m')
-  await expect(page.locator('[data-row]', { hasText: '창호 규격 확인' })).toHaveCount(1)
+  await expect(page.locator('[data-row]', { hasText: '창호 규격 확인 (수정)' })).toHaveCount(1)
   // 화면용 사본에 중복 주석이 없어야 한다 (pdf.js 가 캔버스에 그린 주석 + SVG 가 겹치지 않음)
   await expect(page.locator('[data-page-overlay="0"] [data-markup-id]')).toHaveCount(15)
   await shot('04-reopened')

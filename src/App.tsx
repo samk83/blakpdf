@@ -97,13 +97,22 @@ export default function App() {
     const u = useUi.getState()
     if (!d.original || !d.fileName || u.busy) return
     u.setBusy('저장 중…')
+    // 입력 중인 글자를 먼저 반영한다
+    ;(document.activeElement as HTMLElement | null)?.blur?.()
+    const snap = useDoc.getState()
     try {
-      const bytes = await savePdf(d.original, d.markups, d.calibrations, { fontBytes: await loadSaveFont() })
+      const bytes = await savePdf(snap.original!, snap.markups, snap.calibrations, { fontBytes: await loadSaveFont() })
       const target = asNew ? null : d.filePath
       const name = asNew ? `${baseName(d.fileName)}-markup.pdf` : d.fileName
       const r = await platform.savePdf(target, name, bytes)
       if (!r) return
-      d.markSaved({ fileName: r.name, filePath: r.path, original: bytes })
+      const now = useDoc.getState()
+      now.markSaved({
+        fileName: r.name,
+        filePath: r.path,
+        original: bytes,
+        changedSince: now.markups !== snap.markups || now.calibrations !== snap.calibrations,
+      })
       u.toast('success', `저장했습니다: ${r.name}`)
     } catch (e) {
       console.error(e)

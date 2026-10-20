@@ -76,6 +76,16 @@ describe('PDF 저장/열기 왕복 (SPEC #10)', () => {
     await pdf.destroy()
   })
 
+  it('여러 번 다시 저장해도 파일 크기가 계속 커지지 않는다 (이전 외형·글꼴 정리)', async () => {
+    const first = await savePdf(sample, markups, cals, { fontBytes: font })
+    let cur = first
+    for (let i = 0; i < 3; i++) cur = await savePdf(cur, markups, cals, { fontBytes: font })
+    expect(cur.length).toBeLessThan(first.length * 1.05)
+    const pdf = await getDocument({ data: cur.slice() }).promise
+    expect(await (await pdf.getPage(1)).getAnnotations()).toHaveLength(15)
+    await pdf.destroy()
+  })
+
   it('BlakPDF 데이터가 없는 PDF는 원본 바이트 그대로 보여 준다', async () => {
     const loaded = await loadPdf(sample)
     expect(loaded.viewBytes).toBe(sample)

@@ -51,7 +51,8 @@ export interface DocState {
   focus: { page: number; point?: Pt; seq: number } | null
 
   openDocument(p: { fileName: string; filePath: string | null; original: Uint8Array; viewBytes: Uint8Array; pageCount: number; markups: Markup[]; calibrations: Calibrations }): void
-  markSaved(p: { fileName: string; filePath: string | null; original: Uint8Array }): void
+  /** changedSince: 저장하는 동안 생긴 변경이 있으면 true (저장 안 됨 표시 유지) */
+  markSaved(p: { fileName: string; filePath: string | null; original: Uint8Array; changedSince?: boolean }): void
   setTool(t: Tool): void
   setZoom(z: number): void
   setPage(p: number): void
@@ -121,7 +122,7 @@ export const useDoc = create<DocState>((set, get) => {
         tool: 'select',
         focus: null,
       }),
-    markSaved: (p) => set({ ...p, dirty: false }),
+    markSaved: ({ changedSince, ...p }) => set({ ...p, dirty: Boolean(changedSince) }),
     setTool: (tool) => set({ tool, selectedId: tool === 'select' ? get().selectedId : null }),
     setZoom: (z) => set({ zoom: Math.min(8, Math.max(0.1, z)) }),
     setPage: (page) => set({ page }),
